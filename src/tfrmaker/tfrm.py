@@ -14,11 +14,29 @@ from tfrmaker.helper import (
     split_data_set,
 )
 
+AUTOTUNE = tf.data.AUTOTUNE
+
+ignore_order = tf.data.Options()
+
+ignore_order.experimental_deterministic = False
+
+
+def decode_image(image: str, size: List[int] = None):
+    """Decode, resize, and normalize raw images."""
+
+    image = tf.image.decode_image(image, expand_animations=False)
+    if size:
+        image = tf.image.resize(image, size=size)
+    image = tf.cast(image, tf.float64) / 255.0
+    return image
+
 
 def create_image_example(image_string: str, label_value: int) -> tf.train.Example:
     """Create tensorflow example."""
 
-    image_shape = tf.io.decode_image(image_string).shape
+    decoded_image = tf.image.decode_image(image_string, expand_animations=False)
+    image_shape = decoded_image.shape
+
     feature = {
         "height": _int64_feature(image_shape[0]),
         "width": _int64_feature(image_shape[1]),
@@ -36,30 +54,22 @@ def tf_record_writer(
     tfrecord_file_name: str,
     label_name: str,
     label_value: int,
-    image_size: Optional[List[int]] = None,
 ) -> None:
     """Write image features into TFRecords."""
-
-    if image_size is None:
-        image_size = [32, 32]
 
     with tf.io.TFRecordWriter(tfrecord_file_name) as writer:
 
         for image in images:
             image_path = data_dir + label_name + "/" + image
-            print(image_path)
-            example = create_image_example(
-                tf.image.resize(tf.io.read_file(image_path), [*image_size, 3]),
-                label_value,
-            )
+            image_string = tf.io.read_file(image_path)
+            example = create_image_example(image_string, label_value)
             writer.write(example.SerializeToString())
 
 
-def create_tf_records(
+def create(
     data_dir: str,
-    labels: Dict[str, int],
+    label_mappings: Dict[str, int],
     output_dir: str,
-    image_size: Optional[List[int]] = None,
     train_split: Optional[float] = None,
     val_split: Optional[float] = None,
 ):
@@ -67,7 +77,7 @@ def create_tf_records(
 
     create_output_dir(output_dir)
 
-    for label_name, label_value in labels.items():
+    for label_name, label_value in label_mappings.items():
         data_path = os.listdir(data_dir + label_name + "/")
 
         len_train, len_val = split_data_set(int(len(data_path)), train_split, val_split)
@@ -82,7 +92,6 @@ def create_tf_records(
                 tfrecord_file_name,
                 label_name,
                 label_value,
-                image_size,
             )
 
             create_output_dir_train(output_dir)
@@ -93,7 +102,6 @@ def create_tf_records(
                 tfrecord_file_name,
                 label_name,
                 label_value,
-                image_size,
             )
 
             create_output_dir_test(output_dir)
@@ -104,7 +112,6 @@ def create_tf_records(
                 tfrecord_file_name,
                 label_name,
                 label_value,
-                image_size,
             )
 
         elif train_split:
@@ -116,7 +123,6 @@ def create_tf_records(
                 tfrecord_file_name,
                 label_name,
                 label_value,
-                image_size,
             )
 
             create_output_dir_test(output_dir)
@@ -127,16 +133,51 @@ def create_tf_records(
                 tfrecord_file_name,
                 label_name,
                 label_value,
-                image_size,
             )
 
         else:
             tfrecord_file_name = output_dir + "/" + label_name + ".tfrecord"
             tf_record_writer(
-                data_dir,
-                data_path,
-                tfrecord_file_name,
-                label_name,
-                label_value,
-                image_size,
+                data_dir, data_path, tfrecord_file_name, label_name, label_value
             )
+
+
+def extract(tfrecord: str, image_size: List[int] = None):
+    """Extract features from tfrecords."""
+
+    features = {
+        "height": tf.io.FixedLenFeature([], tf.int64),
+        "width": tf.io.FixedLenFeature([], tf.int64),
+        "depth": tf.io.FixedLenFeature([], tf.int64),
+        "label": tf.io.FixedLenFeature([], tf.int64),
+        "image_raw": tf.io.FixedLenFeature([], tf.string),
+    }
+
+    # Extract the data record
+    example = tf.io.parse_single_example(tfrecord, features)
+    image = decode_image(example["image_raw"], image_size)
+    label = tf.cast(example["label"], tf.int64)
+    return image, label
+
+
+def load(
+    tfrecord_names: List[str],
+    shuffle: bool = False,
+    batch_size: int = 16,
+    image_size: List[int] = None,
+    repeat: bool = False,
+):
+    """Load tfrecord dataset for traning."""
+
+    dataset = tf.data.TFRecordDataset(tfrecord_names, num_parallel_reads=AUTOTUNE)
+    dataset = dataset.with_options(ignore_order)
+    dataset = dataset.map(
+        lambda tfrecord: extract(tfrecord, image_size), num_parallel_calls=AUTOTUNE
+    )
+    dataset = dataset.prefetch(AUTOTUNE)
+    if shuffle:
+        dataset = dataset.shuffle(shuffle)
+    dataset = dataset.batch(batch_size)
+    if repeat:
+        dataset = dataset.repeat()
+    return dataset

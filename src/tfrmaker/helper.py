@@ -57,7 +57,10 @@ def split_data_set(
 ) -> Tuple:
     """Split data set into training and validation sets."""
 
+    len_train, len_val = None, None
+
     len_train = int(len_images * train_split) if train_split else None
+
     if len_train:
         len_val = int(len_train * val_split) if val_split else None
 
