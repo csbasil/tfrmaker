@@ -1,14 +1,14 @@
-"""from tfrmaker import tfrm, display
+"""Simple tfrmaker example."""
+
+from tfrmaker import images, display
 
 LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
-DATA_DIR = "../../examples/datasets/chess/"
-OUTPUT_DIR = "../../examples/tfrecords/chess"
+DATA_DIR = "datasets/chess/"
+OUTPUT_DIR = "tfrecords/chess"
 
-# create_tf_records(DATA_DIR, LABELS, OUTPUT_DIR)
-data = load(
-    ["../../examples/tfrecords/chess/bishop.tfrecord"], batch_size=32, repeat=True
-)
+# tfrm.create(DATA_DIR, LABELS, OUTPUT_DIR)
+
+data = images.load(["tfrecords/chess/queen.tfrecord"], batch_size=32, repeat=True)
 
 databatch = next(iter(data))
-batch(databatch, LABELS)
-"""
+display.batch(databatch, LABELS)

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "tfmaker"
+name = "tfrmaker"
 version = "0.0.1"
 authors = [
   { name="Basil C. Sunny", email="csbasil@gmail.com" },
@@ -19,5 +19,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/csbasil/tfmaker"
-"Bug Tracker" = "https://github.com/csbasil/tfmaker/issues"
+"Homepage" = "https://github.com/csbasil/tfrmaker"
+"Bug Tracker" = "https://github.com/csbasil/tfrmaker/issues"

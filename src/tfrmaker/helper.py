@@ -22,35 +22,16 @@ def _bytes_feature(value: Union[str]) -> tf.train.Feature:
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def create_output_dir(output_dir: str) -> None:
-    """Check output directory exists or create new one."""
+def _create_output_dir(directory: str) -> str:
+    """Check directory exists or create new one."""
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-
-def create_output_dir_train(output_dir: str) -> None:
-    """Check output train directory exists or create new one."""
-
-    if not os.path.exists(output_dir + "/train"):
-        os.makedirs(output_dir + "/train")
+    return directory
 
 
-def create_output_dir_val(output_dir: str) -> None:
-    """Check output validation directory exists or create new one."""
-
-    if not os.path.exists(output_dir + "/val"):
-        os.makedirs(output_dir + "/val")
-
-
-def create_output_dir_test(output_dir: str) -> None:
-    """Check output test directory exists or create new one."""
-
-    if not os.path.exists(output_dir + "/test"):
-        os.makedirs(output_dir + "/test")
-
-
-def split_data_set(
+def _split_data_set(
     len_images: int,
     train_split: Optional[float] = None,
     val_split: Optional[float] = None,
