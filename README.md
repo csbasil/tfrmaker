@@ -1,4 +1,7 @@
 # tfrmaker
+![GitHub](https://img.shields.io/github/license/csbasil/tfrmaker?style=flat-square)
+![GitHub last commit](https://img.shields.io/github/last-commit/csbasil/tfrmaker?style=flat-square)
+![GitHub issues](https://img.shields.io/github/issues-raw/csbasil/tfrmaker?color=yellow&style=flat-square)
 > Utility package which helps to ease the manipulation of tfrecords.
 
 ## [Contents]()
