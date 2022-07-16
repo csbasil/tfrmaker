@@ -30,3 +30,5 @@ dataset = images.load(["tfrecords/chess/queen.tfrecord"], batch_size=32, repeat=
 # iterate one batch and visualize it along with labels.
 databatch = next(iter(dataset))
 display.batch(databatch, LABELS)
+count = images.count(["tfrecords/chess/queen.tfrecord"])
+print(count)

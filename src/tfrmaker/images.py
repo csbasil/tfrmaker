@@ -4,7 +4,7 @@ import os
 from typing import List, Optional, Dict
 import tensorflow as tf
 
-from tfrmaker.helper import (
+from .helper import (
     _int64_feature,
     _bytes_feature,
     _create_output_dir,
@@ -29,7 +29,7 @@ def _decode_image(image: str, size: List[int] = None):
 
 
 def _create_image_example(image_string: str, label_value: int) -> tf.train.Example:
-    """Create tensorflow example."""
+    """Create tensorflow example with image features."""
 
     decoded_image = tf.image.decode_image(image_string, expand_animations=False)
     image_shape = decoded_image.shape
@@ -183,7 +183,7 @@ def create(
 
 
 def extract(tfrecord: str, image_size: List[int] = None):
-    """Extract features from tfrecords."""
+    """Extract image features from tfrecords."""
 
     features = {
         "height": tf.io.FixedLenFeature([], tf.int64),
@@ -195,14 +195,13 @@ def extract(tfrecord: str, image_size: List[int] = None):
 
     # Extract the data record
     example = tf.io.parse_single_example(tfrecord, features)
-    image = _decode_image(example["image_raw"], image_size)
-    label = tf.cast(example["label"], tf.int64)
-    return image, label
+    example["image_raw"] = _decode_image(example["image_raw"], image_size)
+    return example
 
 
 def load(
-    tfrecord_names: List[str],
-    batch_size: int = 16,
+    tfrecord_paths: List[str],
+    batch_size: int = None,
     image_size: List[int] = None,
     repeat: bool = False,
     shuffle: bool = False,
@@ -210,7 +209,7 @@ def load(
 ):
     """Load tfrecord dataset for traning."""
 
-    dataset = tf.data.TFRecordDataset(tfrecord_names, num_parallel_reads=AUTOTUNE)
+    dataset = tf.data.TFRecordDataset(tfrecord_paths, num_parallel_reads=AUTOTUNE)
     dataset = dataset.with_options(ignore_order)
     dataset = dataset.map(
         lambda tfrecord: extract(tfrecord, image_size), num_parallel_calls=AUTOTUNE
@@ -219,7 +218,15 @@ def load(
         dataset = dataset.prefetch(AUTOTUNE)
     if shuffle:
         dataset = dataset.shuffle(shuffle)
-    dataset = dataset.batch(batch_size)
+    if batch_size:
+        dataset = dataset.batch(batch_size)
     if repeat:
         dataset = dataset.repeat()
     return dataset
+
+
+def count(tfrecord_paths: List[str]) -> int:
+    """Count no of examples in a list of tfrecords."""
+
+    dataset = load(tfrecord_paths, batch_size=1)
+    return dataset.reduce(0, lambda x, _: x + 1).numpy()
