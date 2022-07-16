@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt  # type: ignore
 def batch_to_numpy_images_and_labels(data):
     """Convert batch to images and labels."""
 
-    images, labels = data
+    labels, images = data["label"], data["image_raw"]
     numpy_images = images.numpy()
     numpy_labels = labels.numpy()
     if numpy_labels.dtype == object:

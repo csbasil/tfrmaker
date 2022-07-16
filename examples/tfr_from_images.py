@@ -25,10 +25,16 @@ OUTPUT_DIR = "tfrecords/chess"
 images.create(DATA_DIR, LABELS, OUTPUT_DIR)
 
 # load one or more tfrecords as an iterator object.
-dataset = images.load(["tfrecords/chess/queen.tfrecord"], batch_size=32, repeat=True)
+dataset = images.load(
+    ["tfrecords/chess/queen.tfrecord", "tfrecords/chess/bishop.tfrecord"],
+    batch_size=12,
+    shuffle=True,
+)
 
 # iterate one batch and visualize it along with labels.
 databatch = next(iter(dataset))
 display.batch(databatch, LABELS)
+
+# count no of images inside tfrecord
 count = images.count(["tfrecords/chess/queen.tfrecord"])
 print(count)
