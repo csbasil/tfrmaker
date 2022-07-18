@@ -5,7 +5,7 @@ from .context import src  # pylint: disable=unused-import
 from src.tfrmaker import images  # pylint: disable=wrong-import-order
 from .utils_test import inject_test_data
 
-test_data = inject_test_data("tests/test_data.json")
+test_data = inject_test_data("tests/data_test.json")
 
 
 class TestImages:
@@ -21,12 +21,22 @@ class TestImages:
 
         create_options, name, labels, data_dir = test_create_image_dataset
         output_dir = str(test_temp_dir) + "/tfrecords/" + name + "/"
-        images.create(str(data_dir) + "/", labels, output_dir, **create_options)
-        for label in labels:
-            if "val_split" in create_options:
-                assert os.path.exists(output_dir + "val/" + label + ".tfrecord") is True
 
-            if "train_split" in create_options:
+        images.create(str(data_dir) + "/", labels, output_dir, **create_options)
+
+        for label in labels:
+            if "train_split" in create_options and "val_split" in create_options:
+                print(os.listdir(output_dir))
+                assert os.path.exists(output_dir + "val/" + label + ".tfrecord") is True
+                assert (
+                    os.path.exists(output_dir + "train/" + label + ".tfrecord") is True
+                )
+                assert (
+                    os.path.exists(output_dir + "test/" + label + ".tfrecord") is True
+                )
+
+            elif "train_split" in create_options:
+                print(os.listdir(output_dir))
                 assert (
                     os.path.exists(output_dir + "train/" + label + ".tfrecord") is True
                 )
@@ -34,6 +44,7 @@ class TestImages:
                     os.path.exists(output_dir + "test/" + label + ".tfrecord") is True
                 )
             else:
+                print(os.listdir(output_dir))
                 assert os.path.exists(output_dir + label + ".tfrecord") is True
 
     @pytest.mark.parametrize("image_datasets", test_data["image_datasets_from_dir"])
@@ -111,7 +122,6 @@ class TestImages:
     @pytest.mark.parametrize("image_datasets", test_data["image_datasets_from_dir"])
     def test_count(self, test_temp_dir_basename, image_datasets):
         """Test tfrecord counting."""
-
         size_per_class = image_datasets["size_per_class"]
         if (
             "train_split" in image_datasets["create_options"]

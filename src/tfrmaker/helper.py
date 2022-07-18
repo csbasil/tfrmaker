@@ -26,7 +26,7 @@ def _create_output_dir(directory: str) -> str:
     """Check directory exists or create new one."""
 
     if not os.path.exists(directory):
-        os.makedirs(directory)
+        os.makedirs(directory, exist_ok=True)
 
     return directory
 

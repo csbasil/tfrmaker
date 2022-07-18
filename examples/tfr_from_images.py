@@ -12,17 +12,27 @@ data_directory/
 
 
 """
+import cProfile
+import pstats
 from tfrmaker import images, display
+
 
 # mapping label names with integer encoding.
 LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
 
 # specifiying data and output directories.
 DATA_DIR = "datasets/chess/"
-OUTPUT_DIR = "tfrecords/chess"
+OUTPUT_DIR = "tfrecords/chess/"
 
+profiler = cProfile.Profile()
 # create tfrecords from the images present in the given data directory.
+profiler.enable()
 images.create(DATA_DIR, LABELS, OUTPUT_DIR)
+profiler.disable()
+stats = pstats.Stats(profiler).sort_stats("tottime")
+stats.strip_dirs()
+# Print the stats report
+stats.print_stats()
 
 # load one or more tfrecords as an iterator object.
 dataset = images.load(
