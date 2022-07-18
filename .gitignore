@@ -132,3 +132,9 @@ dmypy.json
 # Atom Linting
 
 .atom_linters.toml
+
+examples/datasets/
+examples/tfrecords/
+
+.local_install.sh
+profiler.py
