@@ -41,7 +41,7 @@ LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
 
 # specifiying data and output directories.
 DATA_DIR = "datasets/chess/"
-OUTPUT_DIR = "tfrecords/chess"
+OUTPUT_DIR = "tfrecords/chess/"
 
 # create tfrecords from the images present in the given data directory.
 images.create(DATA_DIR, LABELS, OUTPUT_DIR)
