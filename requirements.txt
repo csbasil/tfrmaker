@@ -1,0 +1,13 @@
+black==22.6.0
+build==0.8.0
+matplotlib==3.5.2
+mypy==0.961
+pip-chill==1.0.1
+pre-commit==2.19.0
+pylint==2.14.4
+pytest-cov==3.0.0
+tensor-annotations-tensorflow-stubs==1.0.0
+tensorflow==2.9.1
+tfmaker==0.0.1
+tfrmaker==0.0.1
+types-pillow==9.2.0

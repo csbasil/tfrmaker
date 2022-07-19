@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# Atom Linting
+
+.atom_linters.toml
+
+examples/datasets/
+examples/tfrecords/
+
+.local_install.sh
+profiler.py
