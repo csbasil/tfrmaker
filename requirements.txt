@@ -8,6 +8,4 @@ pylint==2.14.4
 pytest-cov==3.0.0
 tensor-annotations-tensorflow-stubs==1.0.0
 tensorflow==2.9.1
-tfmaker==0.0.1
-tfrmaker==0.0.1
 types-pillow==9.2.0

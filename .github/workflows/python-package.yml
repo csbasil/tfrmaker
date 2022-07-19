@@ -1,10 +1,10 @@
-name: Python package
+name: python-linting
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ main ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -30,8 +30,8 @@ jobs:
         black --diff --check $(git ls-files '*.py')
     - name: Lint with pylint, mypy
       run: |
-        pylint $(git ls-files '*.py')
-        mypy --strict $(git ls-files '*.py')
+        pylint src/ tests/
+        mypy src/ tests/
     - name: Test with pytest
       run: |
         pytest
