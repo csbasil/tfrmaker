@@ -80,7 +80,8 @@ async def _create_with_train_val_split(
         _create_with_train_split(
             data_dir, output_dir, label_name, label_value, len_train, len_val
         ),
-        asyncio.to_thread(
+        asyncio.get_running_loop().run_in_executor(
+            None,
             _tf_record_image_writer,
             data_dir,
             data_path[0:len_val],
@@ -110,7 +111,8 @@ async def _create_with_train_split(
     tasks: list = []
 
     tasks.append(
-        asyncio.to_thread(
+        asyncio.get_running_loop().run_in_executor(
+            None,
             _tf_record_image_writer,
             data_dir,
             data_path[len_val:len_train],
@@ -121,7 +123,8 @@ async def _create_with_train_split(
     )
 
     tasks.append(
-        asyncio.to_thread(
+        asyncio.get_running_loop().run_in_executor(
+            None,
             _tf_record_image_writer,
             data_dir,
             data_path[len_train:],
@@ -171,7 +174,8 @@ async def _create_from_dir(
                 _create_output_dir(output_dir) + label_name + ".tfrecord"
             )
             tasks.append(
-                asyncio.to_thread(
+                asyncio.get_running_loop().run_in_executor(
+                    None,
                     _tf_record_image_writer,
                     data_dir,
                     data_path,
