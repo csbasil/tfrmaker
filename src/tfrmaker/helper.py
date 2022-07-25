@@ -46,3 +46,27 @@ def _split_data_set(
         len_val = int(len_train * val_split) if val_split else None
 
     return len_train, len_val
+
+
+def _get_dir_size(path: str = ".") -> tuple[float, float]:
+    """Get directory size."""
+
+    size = 0
+    max_file_size = 0
+    with os.scandir(path) as path_iter:
+        for entry in path_iter:
+            if entry.is_file():
+                f_size = entry.stat().st_size
+                max_file_size = f_size if max_file_size < f_size else max_file_size
+                size += f_size
+    return float(size / 1024 / 1024), float(max_file_size / 1024 / 1024)
+
+
+def _get_optimal_shards(
+    path: str, shard_size: int = 10, host_no: int = 1
+) -> tuple[int, int]:
+    """Get optimal number of shards and files per shard."""
+
+    size, max_file_size = _get_dir_size(path)
+    optimal_shards = -(size // -shard_size * host_no) if int(size) > 0 else 1
+    return int(optimal_shards), int(shard_size // max_file_size)

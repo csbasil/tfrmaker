@@ -31,12 +31,10 @@ def test_create_image_dataset(
     test_temp_dir, request
 ):  # pylint: disable=redefined-outer-name
     """Create test image dataset with directory names as class lables."""
-    print(request.param)
     image_dir = os.path.join(test_temp_dir, request.param["name"])
     for label in request.param["labels"]:
         label_dir = os.path.join(image_dir, label)
         os.makedirs(label_dir)
-        print(label_dir)
         for i in range(0, request.param["size_per_class"]):
             img = get_rgb_image(request.param["dimensions"], request.param["type"])
             img_name = label_dir + f"/{i}.{request.param['type']}"
