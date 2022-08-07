@@ -25,7 +25,6 @@ class TestImages:
         results = images.create(
             str(data_dir) + "/", labels, output_dir, **create_options
         )
-        print(results)
         for result in results:
             assert (
                 images.count(
