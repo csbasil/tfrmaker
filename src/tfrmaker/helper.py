@@ -48,7 +48,7 @@ def _split_data_set(
     return len_train, len_val
 
 
-def _get_dir_size(path: str = ".") -> tuple[float, float]:
+def _get_dir_size(path: str = ".") -> Tuple[float, float]:
     """Get directory size."""
 
     size = 0
@@ -64,7 +64,7 @@ def _get_dir_size(path: str = ".") -> tuple[float, float]:
 
 def _get_optimal_shards(
     path: str, shard_size: int = 10, host_no: int = 1
-) -> tuple[int, int]:
+) -> Tuple[int, int]:
     """Get optimal number of shards and files per shard."""
 
     size, max_file_size = _get_dir_size(path)
