@@ -15,8 +15,10 @@
 ## [Description](description)
 [tfrmaker](/) helps to ease the manipulation of tfrecords for your next machine learning project with [tensorflow](https://github.com/tensorflow/tensorflow). You can now easily create, extract and load image datasets in the form of tfrecords with help of [tfrmaker](/). With the help of the package, large image datasets can be converted into tfrecords and fed directly into tensorflow models for training and testing purposes. Some key feature of the package includes:
 - dynamic resizing
-- spliting training and testing of tfrecords
+- splitting tfrecords into optimal shards 
 - spliting training, validation, testing of tfrecords
+- count no of images in tfrecords
+- asynchronous tfrecord creation
 
 ### Why TFRecords?
 TFRecords stores data as a sequence of binary records with help of [protocol buffers](https://developers.google.com/protocol-buffers/), a cross-platform, cross-language library. It has many advantages like:

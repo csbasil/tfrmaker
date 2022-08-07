@@ -22,30 +22,18 @@ class TestImages:
         create_options, name, labels, data_dir = test_create_image_dataset
         output_dir = str(test_temp_dir) + "/tfrecords/" + name + "/"
 
-        images.create(str(data_dir) + "/", labels, output_dir, **create_options)
-
-        for label in labels:
-            if "train_split" in create_options and "val_split" in create_options:
-                print(os.listdir(output_dir))
-                assert os.path.exists(output_dir + "val/" + label + ".tfrecord") is True
-                assert (
-                    os.path.exists(output_dir + "train/" + label + ".tfrecord") is True
+        results = images.create(
+            str(data_dir) + "/", labels, output_dir, **create_options
+        )
+        for result in results:
+            assert (
+                images.count(
+                    [
+                        result["path"],
+                    ]
                 )
-                assert (
-                    os.path.exists(output_dir + "test/" + label + ".tfrecord") is True
-                )
-
-            elif "train_split" in create_options:
-                print(os.listdir(output_dir))
-                assert (
-                    os.path.exists(output_dir + "train/" + label + ".tfrecord") is True
-                )
-                assert (
-                    os.path.exists(output_dir + "test/" + label + ".tfrecord") is True
-                )
-            else:
-                print(os.listdir(output_dir))
-                assert os.path.exists(output_dir + label + ".tfrecord") is True
+                == result["size"]
+            )
 
     @pytest.mark.parametrize("image_datasets", test_data["image_datasets_from_dir"])
     def test_load(self, test_temp_dir_basename, image_datasets):
@@ -210,7 +198,6 @@ class TestImages:
                 for file in os.listdir(tfrecord_paths)
                 if file.endswith(".tfrecord")
             ]
-            print(tfrecord_names)
             count = images.count(tfrecord_names)
             size_per_class = size_per_class * len(image_datasets["labels"])
             assert count == size_per_class
