@@ -1,10 +1,27 @@
 name: publish-testpypi
 
 on:
-  release:
-    types: [prereleased]
+  push:
+    tags: "alpha-v*"
 
 jobs:
+  release:
+    name: Create Pre-Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Create Pre-Release
+        id: create_pre_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Pre Release ${{ github.ref }}
+          generate_release_notes: true
+          draft: false
+          prerelease: true
     build:
       runs-on: ubuntu-latest
       steps:
