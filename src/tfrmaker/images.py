@@ -11,6 +11,7 @@ from .helper import (
     _bytes_feature,
     _create_output_dir,
     _split_data_set,
+    _get_optimal_shards,
 )
 
 AUTOTUNE = tf.data.AUTOTUNE
@@ -63,8 +64,45 @@ def _tf_record_image_writer(
             example = _create_image_example(image_string, label_value)
             writer.write(example.SerializeToString())
 
+    return {"path": tfrecord_file_name, "size": len(images)}
 
-async def _create_with_train_val_split(
+
+def _optimal_shard_writer(data_dir, data_path, output_dir, label_name, label_value):
+    slicer = 0
+    tasks: list = []
+
+    optimal_shards, files_per_shards = _get_optimal_shards(data_dir + label_name)
+    files_per_shards = (
+        files_per_shards if len(data_path) >= files_per_shards else len(data_path)
+    )
+    for shard in range(optimal_shards):
+        tfrecord_file_name = (
+            _create_output_dir(output_dir) + label_name + "_" + str(shard) + ".tfrecord"
+        )
+        data_for_shard = (
+            data_path[slicer : slicer + files_per_shards]
+            if (slicer + files_per_shards) < len(data_path)
+            else data_path[slicer:]
+        )
+        tasks.append(
+            asyncio.get_running_loop().run_in_executor(
+                None,
+                _tf_record_image_writer,
+                data_dir,
+                data_for_shard,
+                tfrecord_file_name,
+                label_name,
+                label_value,
+            )
+        )
+        if (slicer + files_per_shards) > len(data_path):
+            break
+        slicer = slicer + files_per_shards
+
+    return tasks
+
+
+def _create_with_train_val_split(
     data_dir: str,
     output_dir: str,
     label_name: str,
@@ -73,26 +111,23 @@ async def _create_with_train_val_split(
     len_val: int,
 ):
     data_path = os.listdir(data_dir + label_name + "/")
-    tfrecord_val_file_name = (
-        _create_output_dir(output_dir + "val/") + label_name + ".tfrecord"
+    tasks = []
+
+    train_tasks = _create_with_train_split(
+        data_dir, output_dir, label_name, label_value, len_train, len_val
     )
-    await asyncio.gather(
-        _create_with_train_split(
-            data_dir, output_dir, label_name, label_value, len_train, len_val
-        ),
-        asyncio.get_running_loop().run_in_executor(
-            None,
-            _tf_record_image_writer,
-            data_dir,
-            data_path[0:len_val],
-            tfrecord_val_file_name,
-            label_name,
-            label_value,
-        ),
+    for task in train_tasks:
+        tasks.append(task)
+
+    val_tasks = _optimal_shard_writer(
+        data_dir, data_path[0:len_val], output_dir + "val/", label_name, label_value
     )
+    for task in val_tasks:
+        tasks.append(task)
+    return tasks
 
 
-async def _create_with_train_split(
+def _create_with_train_split(
     data_dir: str,
     output_dir: str,
     label_name: str,
@@ -101,40 +136,27 @@ async def _create_with_train_split(
     len_val: int = 0,
 ):
     data_path = os.listdir(data_dir + label_name + "/")
-    tfrecord_train_file_name = (
-        _create_output_dir(output_dir + "train/") + label_name + ".tfrecord"
-    )
-    tfrecord_test_file_name = (
-        _create_output_dir(output_dir + "test/") + label_name + ".tfrecord"
-    )
 
     tasks: list = []
 
-    tasks.append(
-        asyncio.get_running_loop().run_in_executor(
-            None,
-            _tf_record_image_writer,
-            data_dir,
-            data_path[len_val:len_train],
-            tfrecord_train_file_name,
-            label_name,
-            label_value,
-        )
+    train_tasks = _optimal_shard_writer(
+        data_dir,
+        data_path[len_val:len_train],
+        output_dir + "train/",
+        label_name,
+        label_value,
+    )
+    for task in train_tasks:
+        tasks.append(task)
+
+    test_tasks = _optimal_shard_writer(
+        data_dir, data_path[len_train:], output_dir + "test/", label_name, label_value
     )
 
-    tasks.append(
-        asyncio.get_running_loop().run_in_executor(
-            None,
-            _tf_record_image_writer,
-            data_dir,
-            data_path[len_train:],
-            tfrecord_test_file_name,
-            label_name,
-            label_value,
-        )
-    )
+    for task in test_tasks:
+        tasks.append(task)
 
-    await asyncio.gather(*tasks)
+    return tasks
 
 
 async def _create_from_dir(
@@ -156,36 +178,28 @@ async def _create_from_dir(
         )
 
         if train_split and val_split:
-            tasks.append(
-                _create_with_train_val_split(
-                    data_dir, output_dir, label_name, label_value, len_train, len_val
-                )
+            train_val_tasks = _create_with_train_val_split(
+                data_dir, output_dir, label_name, label_value, len_train, len_val
             )
+            for task in train_val_tasks:
+                tasks.append(task)
 
         elif train_split:
-            tasks.append(
-                _create_with_train_split(
-                    data_dir, output_dir, label_name, label_value, len_train
-                )
+            train_tasks = _create_with_train_split(
+                data_dir, output_dir, label_name, label_value, len_train
             )
+            for task in train_tasks:
+                tasks.append(task)
 
         else:
-            tfrecord_file_name = (
-                _create_output_dir(output_dir) + label_name + ".tfrecord"
-            )
-            tasks.append(
-                asyncio.get_running_loop().run_in_executor(
-                    None,
-                    _tf_record_image_writer,
-                    data_dir,
-                    data_path,
-                    tfrecord_file_name,
-                    label_name,
-                    label_value,
-                )
+            tfr_tasks = _optimal_shard_writer(
+                data_dir, data_path, output_dir, label_name, label_value
             )
 
-    await asyncio.gather(*tasks)
+            for task in tfr_tasks:
+                tasks.append(task)
+
+    return await asyncio.gather(*tasks, return_exceptions=True)
 
 
 def create(
@@ -198,11 +212,12 @@ def create(
 ):
     """Create TFRecords from the images."""
     if method == "dir":
-        asyncio.run(
+        results = asyncio.run(
             _create_from_dir(
                 data_dir, label_mappings, output_dir, train_split, val_split
             )
         )
+    return results
 
 
 def _extract(tfrecord: str, image_size: List[int] = None):
