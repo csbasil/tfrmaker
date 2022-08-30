@@ -133,9 +133,10 @@ dmypy.json
 
 .atom_linters.toml
 
-examples/datasets/
-examples/tfrecords/
+examples/datasets/cifar10
+examples/tfrecords/cifar10
+examples/tfrecords/chess
 
 .local_install.sh
-profiler.py
-tfr_from_images.py
+
+.vscode/
