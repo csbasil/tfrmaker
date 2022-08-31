@@ -7,8 +7,8 @@ from tfrmaker import images
 LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
 
 # specifiying data and output directories.
-DATA_DIR = "datasets/chess/"
-OUTPUT_DIR = "tfrecords/chess/"
+DATA_DIR = "examples/datasets/chess/"
+OUTPUT_DIR = "examples/tfrecords/chess/"
 
 
 def _time_tracker(log_fun):

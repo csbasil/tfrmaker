@@ -8,8 +8,8 @@ from tfrmaker import images
 LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
 
 # specifiying data and output directories.
-DATA_DIR = "datasets/chess/"
-OUTPUT_DIR = "tfrecords/chess/"
+DATA_DIR = "examples/datasets/chess/"
+OUTPUT_DIR = "examples/tfrecords/chess/"
 
 # split 80% of image from each label for training and 20% for testing if train_split=0.8.
 # split 20% of training images from each label for validation if val_split=0.2

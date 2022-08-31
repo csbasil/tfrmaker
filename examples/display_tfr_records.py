@@ -14,7 +14,7 @@ LABELS = {
 }
 
 # directory contains tfrecords
-TFR_DIR = "tfrecords/chess/"
+TFR_DIR = "examples/tfrecords/chess/"
 
 # fetch all tfrecords in the directory to a list
 tfr_paths = [

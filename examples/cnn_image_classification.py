@@ -8,8 +8,8 @@ from tfrmaker import images
 LABELS = {"bishop": 0, "knight": 1, "pawn": 2, "queen": 3, "rook": 4}
 
 # specifiying data and output directories.
-DATA_DIR = "datasets/chess/"
-OUTPUT_DIR = "tfrecords/chess/"
+DATA_DIR = "examples/datasets/chess/"
+OUTPUT_DIR = "examples/tfrecords/chess/"
 
 
 def get_tfr_paths(tfr_dir):
@@ -46,9 +46,9 @@ def get_model():
 # create tfrecords
 info = images.create(DATA_DIR, LABELS, OUTPUT_DIR, train_split=0.8, val_split=0.2)
 
-TRAIN_DIR = "tfrecords/chess/train/"
-VAL_DIR = "tfrecords/chess/val/"
-TEST_DIR = "tfrecords/chess/test/"
+TRAIN_DIR = "examples/tfrecords/chess/train/"
+VAL_DIR = "examples/tfrecords/chess/val/"
+TEST_DIR = "examples/tfrecords/chess/test/"
 
 # training dataset from tfrecords
 train_dataset = images.load(
